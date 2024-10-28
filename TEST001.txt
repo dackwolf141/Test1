@@ -1,0 +1,127 @@
+index.html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm SĐT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .search-container {
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <h1>Tìm kiếm Số Điện Thoại</h1>
+        <input type="text" placeholder="Nhập SĐT..." id="phoneInput">
+        <button onclick="searchPhone()">Tìm kiếm</button>
+    </div>
+
+    <script>
+       async function searchPhone() {
+        const phoneNumber = document.getElementById('phoneInput').value;
+
+        // Kiểm tra xem có nhập số điện thoại không
+        if (!phoneNumber) {
+            alert("Vui lòng nhập số điện thoại.");
+            return;
+        }
+
+        const response = await fetch('http://localhost:3001/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ SDT: phoneNumber })
+        });
+
+        // Kiểm tra phản hồi từ server
+        if (!response.ok) {
+            alert("Có lỗi xảy ra khi tìm kiếm.");
+            return;
+        }
+
+        const data = await response.json();
+        alert(JSON.stringify(data)); // Hiển thị kết quả tìm kiếm
+    }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+server.js
+const express = require('express');
+const sql = require('mssql');
+
+const app = express();
+const port = 3001; // Hoặc cổng khác nếu cần
+
+const config = {
+    user: 'sa',
+    password: '52304991Ad',
+    server: '14.224.74.196',
+    port: 1433,
+    database: 'QLPK',
+    options: {
+        encrypt: false, // Tắt SSL
+        trustServerCertificate: true
+    }
+};
+
+app.use(express.static('public'));
+app.use(express.json());
+
+app.post('/search', async (req, res) => {
+    const { SDT } = req.body;
+
+    try {
+        await sql.connect(config);
+        const result = await sql.query`SELECT * FROM QLPK.dbo.BenhNhan WHERE SDT = ${SDT}`;
+        res.json(result.recordset);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Lỗi khi kết nối đến cơ sở dữ liệu.');
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server đang chạy tại http://localhost:${port}`);
+});

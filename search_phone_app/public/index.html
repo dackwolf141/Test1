@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm SĐT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tìm kiếm Số Điện Thoại</h1>
+    <input type="text" placeholder="Nhập SĐT..." id="phoneInput">
+    <button onclick="searchPhone()">Tìm kiếm</button>
+
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th>Mã Bệnh Nhân</th>
+                <th>Họ Tên</th>
+                <th>Ngày Sinh</th>
+                <th>Giới Tính</th>
+                <th>Địa Chỉ</th>
+                <th>SĐT</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        async function searchPhone() {
+            const phoneNumber = document.getElementById('phoneInput').value;
+
+            if (!phoneNumber) {
+                alert("Vui lòng nhập số điện thoại.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:3001/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ SDT: phoneNumber })
+            });
+
+            if (!response.ok) {
+                alert("Có lỗi xảy ra khi tìm kiếm.");
+                return;
+            }
+
+            const data = await response.json();
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            const tbody = document.querySelector('#resultTable tbody');
+            tbody.innerHTML = ''; // Xóa kết quả cũ
+
+            if (data.length === 0) {
+                alert("Không tìm thấy kết quả.");
+                return;
+            }
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.MaBenhNhan || 'N/A'}</td>
+                    <td>${item.HoTen || 'N/A'}</td>
+                    <td>${item.NgaySinh || 'N/A'}</td>
+                    <td>${item.GioiTinh || 'N/A'}</td>
+                    <td>${item.DiaChi || 'N/A'}</td>
+                    <td>${item.SDT || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
